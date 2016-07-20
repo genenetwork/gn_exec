@@ -22,3 +22,24 @@ IRC on #genenetwork on irc.freenode.net.
 
 Code and primary web service managed by Dr. Robert W. Williams and the
 University of Tennessee Health Science Center, Memphis TN, USA.
+
+## Installation
+
+If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+
+  1. Add `gn_exec` to your list of dependencies in `mix.exs`:
+
+    ```elixir
+    def deps do
+      [{:gn_exec, "~> 0.1.0"}]
+    end
+    ```
+
+  2. Ensure `gn_exec` is started before your application:
+
+    ```elixir
+    def application do
+      [applications: [:gn_exec]]
+    end
+    ```
+
