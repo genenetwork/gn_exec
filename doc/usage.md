@@ -8,7 +8,7 @@
 Configure the name of the remote node that executes the GnExec app inside the `config.exs`
 
     config :gn_exec,
-      node: "executron"
+      node: "executron@YOUR_HOST_NAME"
 
 Add the dependency in `mix.exs`
 
