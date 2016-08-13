@@ -8,7 +8,7 @@
       :notimplemented
 
   """
-  def cmd(directory, parameters \\ '', output \\ :stdout) do
+  def start(directory, parameters \\ '', output \\ :stdout) do
        Cmd.exec("ls #{parameters} #{directory}", {:output, output})
   end
 end
