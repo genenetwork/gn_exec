@@ -8,7 +8,7 @@
       :notimplemented
 
   """
-  def cmd(query, input, output) do
+  def start(query, input, output) do
        Cmd.exec("grep #{query} #{input} |wc -w > #{output}", {:output, output})
   end
 end

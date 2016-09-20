@@ -13,7 +13,7 @@ defmodule GnExec.Executor do
   """
   def exec_async(command, args ) do
     Task.Supervisor.async {__MODULE__, String.to_atom(Application.fetch_env!(:gn_exec, :node))},
-                          command,
+                          Module.concat([GnExec,CMD,command]),
                           :start,
                           args
   end
