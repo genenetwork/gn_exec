@@ -11,11 +11,35 @@ defmodule GnExec.Rest.Job do
 
 
   def new(command, args) do
+    #  when {:module, _} ==
     # Todo validate command
-    %GnExec.Rest.Job{token: token(command, args),
-         command: Module.concat([GnExec,CMD,command]),
-         args: args
-       }
+        %GnExec.Rest.Job{
+          token: token(command, args),
+          command: command,
+          args: args
+         }
+  end
+
+  def validate(command) do
+    case Code.ensure_loaded(Module.concat([GnExec,Cmd,command])) do
+      {:module, module } ->
+        {:ok, module }
+      {:error, :nofile} ->
+        {:error, :noprogram}
+    end
+  end
+
+  def get(program, parameter) do
+    GnExec.Rest.Client.get_a_job(program, parameter)
+  end
+
+  def run(job) do
+    case validate(job.command) do
+      {:ok, module } ->
+        task = GnExec.Executor.exec_async module, job.args
+        Task.await(task)
+      {:error, :noprogram} -> {:error, :noprogram}
+    end
   end
 
   @doc ~S"""

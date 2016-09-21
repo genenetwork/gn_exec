@@ -1,9 +1,9 @@
 defmodule GnExec.Rest.Client do
   use HTTPoison.Base
 
-  @expected_fields ~w(
-    token command args
-  )
+  # @expected_fields ~w(
+  #   token command args
+  # )
 
   def process_url(url) do
     server_url = Application.get_env(:gn_exec, :gn_server_url)
@@ -18,7 +18,7 @@ defmodule GnExec.Rest.Client do
     #|> Enum.map(fn({k, v}) -> {String.to_atom(k), v} end)
   end
 
-  def get_job(program, parameter) do
-    get!(program <> "/" <> parameter <> ".json").body
+  def get_a_job(program, parameter) do
+    get!(program <> "/dataset.json").body
   end
 end
