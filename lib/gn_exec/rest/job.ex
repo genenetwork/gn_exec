@@ -33,10 +33,25 @@ defmodule GnExec.Rest.Job do
     GnExec.Rest.Client.get_a_job(program, parameter)
   end
 
+  #@spec run(job :: GnExec.Rest.Job) :: any
   def run(job) do
+    set_status(job, 0)
+# you can define any function/callback that will be called every time a new data will be produced
+    output_callback = fn(data) ->
+      # TODO: Here user can also update the state of the jobs increasing and/or modifying it
+      status = status(job)
+      update_stdout(job, data)
+      set_status(job, status.progress + 1)
+
+    end
+
     case validate(job.command) do
       {:ok, module } ->
-        task = GnExec.Executor.exec_async module, job.args
+        task = GnExec.Executor.exec_async module, [
+          job.args,
+          "",
+          output_callback
+        ]
         Task.await(task)
       {:error, :noprogram} -> {:error, :noprogram}
     end

@@ -10,6 +10,7 @@ defmodule GnExec.Cmd do
   """
   def exec(cmd, {:output, output} \\ {:output, nil}) do
     port=Port.open({:spawn, cmd},[:stream, :exit_status, :use_stdio, :stderr_to_stdout])
+    # TODO: maybe introduce callback to set up the status for the job {progress: 0}
     loop(port, [],0, output)
   end
 
@@ -20,6 +21,7 @@ defmodule GnExec.Cmd do
   defp loop(port, cache, timeout, output) do
     receive do
       {^port, {:data, data}} ->
+        output.(data)
         loop(port, [data | cache], timeout, output)
       {^port, {:exit_status, exit_status}} ->
         {exit_status, Enum.reverse(cache), output}
