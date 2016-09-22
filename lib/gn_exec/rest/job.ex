@@ -51,8 +51,8 @@ defmodule GnExec.Rest.Job do
           job.args,
           "",
           output_callback
-        ]
-        Task.await(task)
+        ],
+        job
       {:error, :noprogram} -> {:error, :noprogram}
     end
   end
@@ -67,6 +67,10 @@ defmodule GnExec.Rest.Job do
 
   def update_stdout(job, stdout) do
     GnExec.Rest.Client.update_stdout(job.token, stdout)
+  end
+
+  def set_retval(job, retval) do
+    GnExec.Rest.Client.set_retval(job.token, retval)
   end
 
   @doc ~S"""

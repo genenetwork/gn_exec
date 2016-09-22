@@ -11,11 +11,24 @@ defmodule GnExec.Executor do
   Task.await task
 
   """
-  def exec_async(command, args ) do
+  def exec_async(command, args, job ) do
     # {__MODULE__, String.to_atom(Application.fetch_env!(:gn_exec, :node))}
-    Task.Supervisor.async __MODULE__,
+    task = Task.Supervisor.async __MODULE__,
                           command,
                           :start,
                           args
+    #IO.puts inspect task
+    # TODO put retval from here.
+    {retval, _, _ } = monitor_task(task)
+    GnExec.Rest.Job.set_retval(job, retval)
+
+  end
+
+  defp monitor_task(task) do
+    case Task.yield(task) do
+      nil -> monitor_task(task)
+      {:ok, term} -> term
+      {:exit, term} -> term
+    end
   end
 end

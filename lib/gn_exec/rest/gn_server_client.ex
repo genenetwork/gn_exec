@@ -39,4 +39,9 @@ defmodule GnExec.Rest.Client do
     response = put!("program/" <> token <> "/STDOUT",{:form, [{:stdout, stdout}]})
   end
 
+  def set_retval(token, retval) do
+    url = Application.get_env(:gn_exec, :gn_server_url)
+    response = put!("program/" <> token <> "/retval.json",{:form, [{:retval, retval}]})
+  end
+
 end
