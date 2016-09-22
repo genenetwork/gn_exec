@@ -33,6 +33,11 @@ defmodule GnExec.Rest.Client do
   def set_status(token, progress) do
     url = Application.get_env(:gn_exec, :gn_server_url)
     response = put!("program/" <> token <> "/status.json",{:form, [{:progress, progress}]})
-
   end
+
+  def update_stdout(token, stdout) do
+    url = Application.get_env(:gn_exec, :gn_server_url)
+    response = put!("program/" <> token <> "/STDOUT",{:form, [{:stdout, stdout}]})
+  end
+
 end

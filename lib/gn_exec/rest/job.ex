@@ -50,6 +50,10 @@ defmodule GnExec.Rest.Job do
     GnExec.Rest.Client.set_status(job.token, progress)
   end
 
+  def update_stdout(job, stdout) do
+    GnExec.Rest.Client.update_stdout(job.token, stdout)
+  end
+
   @doc ~S"""
   Generate a token for a command
 
