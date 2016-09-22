@@ -42,6 +42,14 @@ defmodule GnExec.Rest.Job do
     end
   end
 
+  def status(job) do
+    GnExec.Rest.Client.get_status(job.token)
+  end
+
+  def set_status(job, progress) do
+    GnExec.Rest.Client.set_status(job.token, progress)
+  end
+
   @doc ~S"""
   Generate a token for a command
 
@@ -55,4 +63,8 @@ defmodule GnExec.Rest.Job do
   end
 
 
+end
+
+defmodule GnExec.Rest.JobStatus do
+  defstruct [:progress]
 end
