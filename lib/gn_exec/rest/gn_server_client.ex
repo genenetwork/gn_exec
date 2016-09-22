@@ -24,7 +24,6 @@ defmodule GnExec.Rest.Client do
   end
 
   def get_status(token) do
-    IO.puts "program/" <> token <> "/status.json"
     get!("program/" <> token <> "/status.json").body
     |> Poison.decode!(as: %GnExec.Rest.JobStatus{} )
   end
