@@ -17,8 +17,7 @@ defmodule GnExec.Executor do
                           command,
                           :start,
                           args
-    #IO.puts inspect task
-    # TODO put retval from here.
+    # Set retval on remote server.
     {retval, _, _ } = monitor_task(task)
     GnExec.Rest.Job.set_retval(job, retval)
 

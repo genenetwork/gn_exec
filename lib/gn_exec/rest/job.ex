@@ -1,4 +1,10 @@
+defmodule GnExec.Rest.JobStatus do
+  defstruct [:progress]
+end
+
+
 defmodule GnExec.Rest.Job do
+  use HTTPoison.Base
   # @derive [Poison.Encoder]
 
   @type command :: String.t
@@ -8,6 +14,12 @@ defmodule GnExec.Rest.Job do
 
   # defstruct token: "", command: "" , arguments: []
   defstruct [:token, :command, :args]
+
+
+  def process_url(url) do
+    server_url = Application.get_env(:gn_exec, :gn_server_url)
+    server_url <> url
+  end
 
 
   def new(command, args) do
@@ -30,7 +42,9 @@ defmodule GnExec.Rest.Job do
   end
 
   def get(program, parameter) do
-    GnExec.Rest.Client.get_a_job(program, parameter)
+    # GnExec.Rest.Client.get_a_job(program, parameter)
+    get!(program <> "/dataset.json").body
+    |> Poison.decode!(as: %GnExec.Rest.Job{})
   end
 
   #@spec run(job :: GnExec.Rest.Job) :: any
@@ -58,19 +72,27 @@ defmodule GnExec.Rest.Job do
   end
 
   def status(job) do
-    GnExec.Rest.Client.get_status(job.token)
+    # GnExec.Rest.Client.get_status(job.token)
+    get!("program/" <> job.token <> "/status.json").body
+    |> Poison.decode!(as: %GnExec.Rest.JobStatus{} )
   end
 
   def set_status(job, progress) do
-    GnExec.Rest.Client.set_status(job.token, progress)
+    # GnExec.Rest.Client.set_status(job.token, progress)
+    url = Application.get_env(:gn_exec, :gn_server_url)
+    response = put!("program/" <> job.token <> "/status.json",{:form, [{:progress, progress}]})
   end
 
   def update_stdout(job, stdout) do
-    GnExec.Rest.Client.update_stdout(job.token, stdout)
+    # GnExec.Rest.Client.update_stdout(job.token, stdout)
+    url = Application.get_env(:gn_exec, :gn_server_url)
+    response = put!("program/" <> job.token <> "/STDOUT",{:form, [{:stdout, stdout}]})
   end
 
   def set_retval(job, retval) do
-    GnExec.Rest.Client.set_retval(job.token, retval)
+    # GnExec.Rest.Client.set_retval(job.token, retval)
+    url = Application.get_env(:gn_exec, :gn_server_url)
+    response = put!("program/" <> job.token <> "/retval.json",{:form, [{:retval, retval}]})
   end
 
   @doc ~S"""
@@ -86,8 +108,4 @@ defmodule GnExec.Rest.Job do
   end
 
 
-end
-
-defmodule GnExec.Rest.JobStatus do
-  defstruct [:progress]
 end
