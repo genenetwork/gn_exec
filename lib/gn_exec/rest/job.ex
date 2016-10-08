@@ -56,17 +56,15 @@ defmodule GnExec.Rest.Job do
       status = status(job)
       update_stdout(job, data)
       set_status(job, status.progress + 1)
-
     end
+
 
     case validate(job.command) do
       {:ok, module } ->
-        task = GnExec.Executor.exec_async module, [
-          job.args,
-          "",
-          output_callback
-        ],
-        job
+        task = GnExec.Executor.exec_async module,
+                                          job,
+                                          output_callback,
+                                          &transfer_files/2
       {:error, :noprogram} -> {:error, :noprogram}
     end
   end
@@ -93,6 +91,24 @@ defmodule GnExec.Rest.Job do
     # GnExec.Rest.Client.set_retval(job.token, retval)
     url = Application.get_env(:gn_exec, :gn_server_url)
     response = put!("program/" <> job.token <> "/retval.json",{:form, [{:retval, retval}]})
+  end
+
+  def transfer_files(job, path) do
+    File.ls!(path)
+    |> Enum.map fn(file) ->
+      # TODO need to collect responses from remote server to do something else?
+      response = transfer_file(job, Path.join(path, file ))
+      response.body
+      |> Poison.decode!
+    end
+  end
+
+  defp transfer_file(job, filename) do
+    url = Application.get_env(:gn_exec, :gn_server_url)
+    post!("program/" <> job.token ,
+                     {:multipart, [{"name", "file"}, {:file, filename}]},
+                     [{"Accept", "application/json"}]
+                     )
   end
 
   @doc ~S"""

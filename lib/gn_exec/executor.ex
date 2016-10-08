@@ -11,16 +11,20 @@ defmodule GnExec.Executor do
   Task.await task
 
   """
-  def exec_async(command, args, job ) do
+  def exec_async(command, job, output_callback, transfer_callback ) do
     # {__MODULE__, String.to_atom(Application.fetch_env!(:gn_exec, :node))}
     task = Task.Supervisor.async __MODULE__,
-                          command,
-                          :start,
-                          args
+                          GnExec.Cmd,
+                          :exec,
+                          [
+                            command,
+                            job,
+                            output_callback,
+                            transfer_callback
+                          ]
     # Set retval on remote server.
     {retval, _, _ } = monitor_task(task)
     GnExec.Rest.Job.set_retval(job, retval)
-
   end
 
   defp monitor_task(task) do
