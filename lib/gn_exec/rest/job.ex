@@ -77,36 +77,34 @@ defmodule GnExec.Rest.Job do
 
   def set_status(job, progress) do
     # GnExec.Rest.Client.set_status(job.token, progress)
-    url = Application.get_env(:gn_exec, :gn_server_url)
     response = put!("program/" <> job.token <> "/status.json",{:form, [{:progress, progress}]})
   end
 
   def update_stdout(job, stdout) do
     # GnExec.Rest.Client.update_stdout(job.token, stdout)
-    url = Application.get_env(:gn_exec, :gn_server_url)
     response = put!("program/" <> job.token <> "/STDOUT",{:form, [{:stdout, stdout}]})
   end
 
   def set_retval(job, retval) do
     # GnExec.Rest.Client.set_retval(job.token, retval)
-    url = Application.get_env(:gn_exec, :gn_server_url)
     response = put!("program/" <> job.token <> "/retval.json",{:form, [{:retval, retval}]})
   end
 
   def transfer_files(job, path) do
     File.ls!(path)
-    |> Enum.map fn(file) ->
+    |> Enum.map( fn(file) ->
       # TODO need to collect responses from remote server to do something else?
       response = transfer_file(job, Path.join(path, file ))
       response.body
       |> Poison.decode!
     end
+    )
   end
 
   defp transfer_file(job, filename) do
-    url = Application.get_env(:gn_exec, :gn_server_url)
+    # TODO compute the checksum for each file, it is not possible to know at priori the size of the file.
     post!("program/" <> job.token ,
-                     {:multipart, [{"name", "file"}, {:file, filename}]},
+                     {:multipart, [{"name", "file"}, {:file, filename}, {"checksum","xxx"}]},
                      [{"Accept", "application/json"}]
                      )
   end
