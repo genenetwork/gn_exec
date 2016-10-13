@@ -10,7 +10,7 @@ defmodule GnExec.Md5 do
   def file(filename) do
     case File.open(filename, [:binary,:read, {:read_ahead, @blocksize}]) do
       {:ok, file} -> loop(file, :erlang.md5_init())
-      {:error, reason}   -> reason
+      {:error, reason}   -> {:error, reason}
     end
   end
 
