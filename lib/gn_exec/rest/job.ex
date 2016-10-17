@@ -66,7 +66,7 @@ defmodule GnExec.Rest.Job do
         task = GnExec.Executor.exec_async module,
                                           job,
                                           output_callback,
-                                          &transfer_files/2
+                                          &transfer_file/2
       {:error, :noprogram} -> {:error, :noprogram}
     end
   end
