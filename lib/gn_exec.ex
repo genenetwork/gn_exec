@@ -10,6 +10,7 @@ defmodule GnExec do
     children = [
       # Starts a worker by calling: GnExec.Worker.start_link(arg1, arg2, arg3)
       # worker(GnExec.Worker, [arg1, arg2, arg3]),
+      worker(GnExec.Queue, []),
       supervisor(Task.Supervisor, [[name: GnExec.Executor]])
     ]
 
