@@ -2,7 +2,6 @@ defmodule GnExec.Rest.JobStatus do
   defstruct [:progress]
 end
 
-
 defmodule GnExec.Rest.Job do
   use HTTPoison.Base
   # @derive [Poison.Encoder]
@@ -13,7 +12,7 @@ defmodule GnExec.Rest.Job do
   @type token :: String.t
 
   # defstruct token: "", command: "" , arguments: []
-  defstruct [:token, :command, :args]
+
 
 
   def process_url(url) do
@@ -22,31 +21,23 @@ defmodule GnExec.Rest.Job do
   end
 
 
-  def new(command, args \\ [] ) do
-    #  when {:module, _} ==
-    # Todo validate command
-        %GnExec.Rest.Job{
-          token: token(command, args),
-          command: command,
-          args: args
-         }
-  end
-
-  def validate(command) do
-    case Code.ensure_loaded(Module.concat([GnExec,Cmd,command])) do
-      {:module, module } ->
-        {:ok, module }
-      {:error, :nofile} ->
-        {:error, :noprogram}
-    end
-  end
 
 # programs does not require parameters, actually jobs are jobs+arguments+data
 # there is no need to provide any data or parameters
-  def get(program) do
+  def get do
     # GnExec.Rest.Client.get_a_job(program)
-    get!(program <> "/dataset.json").body
-    |> Poison.decode!(as: %GnExec.Rest.Job{})
+    get!("").body
+    |> Poison.decode!(as: %GnExec.Job{})
+  end
+
+  ### TODO: submit a new job to the queue.
+  def submit(job) do
+    post!(job.command, {:form, [
+                                 {:arguments, job.args},
+                                 {:token, job.token}
+                               ]}
+          ).body
+          |> Poison.decode!
   end
 
   #@spec run(job :: GnExec.Rest.Job) :: any
@@ -61,7 +52,7 @@ defmodule GnExec.Rest.Job do
     end
 
 
-    case validate(job.command) do
+    case GnExec.Job.validate(job.command) do
       {:ok, module } ->
         task = GnExec.Executor.exec_async module,
                                           job,
@@ -115,18 +106,5 @@ defmodule GnExec.Rest.Job do
                      [{"Accept", "application/json"}]
                      )
   end
-
-  @doc ~S"""
-  Generate a token for a command
-
-  token = "8412ab517c6ef9c2f8b6dae3ed2a60cc"
-  cache_dir = Application.get_env(:gn_server, :cache_dir)
-  """
-  defp token(command, args) do
-    #:crypto.rand_bytes(32)
-    # SecureRandom.hex(32)
-    :crypto.hash(:sha256, [command | args]) |> Base.encode16 |> String.downcase
-  end
-
 
 end
