@@ -70,6 +70,11 @@ defmodule GnExec.Registry do
     GenServer.cast(__MODULE__, {:complete, token})
   end
 
+  def transferred(token) do
+    GenServer.cast(__MODULE__, {:transferred, token})
+  end
+
+
   def error(token) do
     GenServer.cast(__MODULE__, {:error, token})
   end
@@ -169,13 +174,24 @@ defmodule GnExec.Registry do
     end
   end
 
-  def handle_cast({:complete, token}, {map, queue} = state) do
+  def handle_cast({:transferred, token}, {map, queue} = state) do
     case Map.get(map, token) do
-      {job, :running} -> {:noreply, {Map.put(map, token, {job, :complete}), queue }}
+      {job, :running} -> {:noreply, {Map.put(map, token, {job, :transferred}), queue }}
       nil -> {:noreply, state} # not exists
-      {_job, _status} -> {:noreply, state }
+      #{_job, _status} -> {:noreply, state }
     end
   end
+
+  def handle_cast({:complete, token}, {map, queue} = state) do
+    x = Map.get(map, token)
+    IO.inspect x
+    case Map.get(map, token) do
+      {job, :transferred} -> {:noreply, {Map.put(map, token, {job, :complete}), queue }}
+      nil -> {:noreply, state} # not exists
+      #{_job, _status} -> {:noreply, state }
+    end
+  end
+
 
   def handle_cast({:error, token}, {map, queue} = state) do
     case Map.get(map, token) do
@@ -271,7 +287,7 @@ defmodule GnExec.Registry do
 
   def handle_cast({:retval, {:write, token, value}}, {map, _queue} = state) do
     case Map.fetch(map, token) do
-      {:ok, {job, :running}} ->
+      {:ok, {job, :transferred}} ->
         # TODO: a function could evaluate if the update is ok or not.
         Job.retval(:write, job, value)
       :error -> :error
