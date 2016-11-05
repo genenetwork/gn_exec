@@ -164,7 +164,7 @@ defmodule GnExec.Job do
   def setupdir(job) do # TODO: is it better to have path inside or as parameter ?
     static_path = Application.get_env(:gn_exec, :jobs_path_prefix)
     path = Path.join(static_path, job.token)
-    IO.puts path
+    # IO.puts path
     response = case File.exists?(path) do
     true ->
       :exists
@@ -175,7 +175,7 @@ defmodule GnExec.Job do
       progress(:write, job, 0)
       :ok
     end
-    IO.puts response
+    # IO.puts response
     response
   end
 
