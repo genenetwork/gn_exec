@@ -26,8 +26,21 @@ defmodule GnExec.Rest.Job do
 # there is no need to provide any data or parameters
   def get do
     # GnExec.Rest.Client.get_a_job(program)
-    get!("").body
+    response = get!("").body
     |> Poison.decode!(as: %GnExec.Job{})
+    # Here a with is more than helpful
+    case response do
+      "empty" -> :empty
+      # passing back and forth the data are converted into strings by json
+      job -> %GnExec.Job{job | module: String.to_atom(job.module)}
+# TODO validate the incoming command
+      #   case validate(job.command) do
+      #   {:ok, module} ->
+      #   {:error, reason} -> reason
+      #
+      # end
+    end
+
   end
 
   ### TODO: submit a new job to the queue.
@@ -51,26 +64,30 @@ defmodule GnExec.Rest.Job do
       set_status(job, status.progress + 1)
     end
 
+    retval_callback = fn(job, retval) ->
+      set_retval(job, retval)
+    end
+
 
     case GnExec.Job.validate(job.command) do
-      {:ok, module } ->
-        task = GnExec.Executor.exec_async module,
-                                          job,
+      {:ok, _module } ->
+        task = GnExec.Executor.exec_async job,
                                           output_callback,
-                                          &transfer_file/2
+                                          &transfer_file/2,
+                                          retval_callback
       {:error, :noprogram} -> {:error, :noprogram}
     end
   end
 
   def status(job) do
     # GnExec.Rest.Client.get_status(job.token)
-    get!("program/" <> job.token <> "/status.json").body
+    get!("program/" <> job.token <> "/progress.json").body
     |> Poison.decode!(as: %GnExec.Rest.JobStatus{} )
   end
 
   def set_status(job, progress) do
     # GnExec.Rest.Client.set_status(job.token, progress)
-    put!("program/" <> job.token <> "/status.json",{:form, [{:progress, progress}]})
+    put!("program/" <> job.token <> "/progress.json",{:form, [{:progress, progress}]})
   end
 
   def update_stdout(job, stdout) do
@@ -93,7 +110,7 @@ defmodule GnExec.Rest.Job do
     )
   end
 
-  defp transfer_file(job, filename) do
+  def transfer_file(job, filename) do
     # TODO compute the checksum for each file, it is not possible to know at priori the size of the file.
     {:ok, checksum} = GnExec.Md5.file(filename)
     post!("program/" <> job.token ,
