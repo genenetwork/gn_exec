@@ -39,7 +39,6 @@ defmodule GnExec.Cmd do
   def exec(job, output_callback, transfer_callback, retval_callback) do
     # TODO in case of exception the directory is not removed and task can not start
     #      make it more robust
-    IO.inspect job
     command = apply(job.module, :script, job.args) # calling the script function dynamically
     token_path = Application.get_env(:gn_exec, :jobs_path_prefix)
     |> Path.join(job.token)
@@ -87,7 +86,9 @@ defmodule GnExec.Cmd do
   """
   defp pack(job, path) do
     archive = "#{job.token}.tar.gz"
-    System.cmd("tar",["-C", path, "-zcvf", archive, "."])
+    {:ok, devnull} = File.open "/dev/null", [:write]
+    System.cmd("tar",["-C", path, "-zcvf", archive, "."], stderr_to_stdout: true, into: IO.stream(devnull, :line))
+    File.close(devnull)
     Path.absname(archive)
   end
 
