@@ -30,6 +30,7 @@ use Mix.Config
 #     import_config "#{Mix.env}.exs"
 
 config :gn_exec,
-  gn_server_url: "http://127.0.0.1:8880/gnexec/"
+  gn_server_url: "http://127.0.0.1:8880/gnexec/",
+  jobs_path_prefix: "test/data/input"
 # TODO make gn_server url available at runtime not at compile time
 # http://blog.plataformatec.com.br/2016/05/how-to-config-environment-variables-with-elixir-and-exrm/
