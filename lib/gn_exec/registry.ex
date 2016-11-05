@@ -183,8 +183,6 @@ defmodule GnExec.Registry do
   end
 
   def handle_cast({:complete, token}, {map, queue} = state) do
-    x = Map.get(map, token)
-    IO.inspect x
     case Map.get(map, token) do
       {job, :transferred} -> {:noreply, {Map.put(map, token, {job, :complete}), queue }}
       nil -> {:noreply, state} # not exists
