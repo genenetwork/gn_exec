@@ -53,8 +53,8 @@ defmodule GnExec.Registry do
 
   def run(token,
           output_callback \\ fn(_x)-> nil end,
-          transfer_callback \\ fn(_job, _packfile)-> nil end ,
-          retval_callback \\ fn(_x)-> nil end) do
+          transfer_callback \\ fn(_job, _packfile)-> :ok end ,
+          retval_callback \\ fn(retval)-> retval end) do
     GenServer.cast(__MODULE__, {:run, token, output_callback, transfer_callback, retval_callback})
   end
 
@@ -118,6 +118,10 @@ defmodule GnExec.Registry do
     GenServer.cast(__MODULE__, {:retval, {:write, token, data}})
   end
 
+  def wipeout do
+    GenServer.cast(__MODULE__, :wipeout)
+  end
+
 
   # Server (callbacks)
 
@@ -163,43 +167,6 @@ defmodule GnExec.Registry do
     end
   end
 
-
-  def handle_cast({:run, token, output_callback, transfer_callback, retval_callback}, {map, queue} = state) do
-    case Map.get(map, token) do
-      { job, :requested} ->
-        Job.setupdir(job) # Create the directories before setting the stare to running
-        Job.run(job, output_callback, transfer_callback, retval_callback)
-        {:noreply, {Map.put(map, token, {job, :running}), queue}}
-      _ -> {:noreply, state }
-    end
-  end
-
-  def handle_cast({:transferred, token}, {map, queue} = state) do
-    case Map.get(map, token) do
-      {job, :running} -> {:noreply, {Map.put(map, token, {job, :transferred}), queue }}
-      nil -> {:noreply, state} # not exists
-      #{_job, _status} -> {:noreply, state }
-    end
-  end
-
-  def handle_cast({:complete, token}, {map, queue} = state) do
-    case Map.get(map, token) do
-      {job, :transferred} -> {:noreply, {Map.put(map, token, {job, :complete}), queue }}
-      nil -> {:noreply, state} # not exists
-      #{_job, _status} -> {:noreply, state }
-    end
-  end
-
-
-  def handle_cast({:error, token}, {map, queue} = state) do
-    case Map.get(map, token) do
-      {job, :running} -> {:noreply, {Map.put(map, token, {job, :error}), queue }}
-      nil -> {:noreply, state} # not exists
-      {_job, _status} -> {:noreply, state }
-    end
-  end
-
-
   def handle_call(:next, _from, {map, queue} = state) do
     case :queue.out(queue) do
       {:empty, _queue } ->
@@ -244,11 +211,44 @@ defmodule GnExec.Registry do
     end
   end
 
-
-
   def handle_call(request, from, state) do
     # Call the default implementation from GenServer
     super(request, from, state)
+  end
+
+  # CAST
+
+  def handle_cast({:run, token, output_callback, transfer_callback, retval_callback}, {map, queue} = state) do
+    case Map.get(map, token) do
+      { job, :requested} ->
+        Job.setupdir(job) # Create the directories before setting the stare to running
+        Job.run(job, output_callback, transfer_callback, retval_callback)
+        {:noreply, {Map.put(map, token, {job, :running}), queue}}
+      _ -> {:noreply, state }
+    end
+  end
+
+  def handle_cast({:transferred, token}, {map, queue} = state) do
+    case Map.get(map, token) do
+      {job, :running} -> {:noreply, {Map.put(map, token, {job, :transferred}), queue }}
+      nil -> {:noreply, state} # not exists
+      #{_job, _status} -> {:noreply, state }
+    end
+  end
+
+  def handle_cast({:complete, token}, {map, queue} = state) do
+    case Map.get(map, token) do
+      {job, :transferred} -> {:noreply, {Map.put(map, token, {job, :complete}), queue }}
+      nil -> {:noreply, state} # not exists
+      #{_job, _status} -> {:noreply, state }
+    end
+  end
+
+  def handle_cast({:error, token}, {map, queue} = state) do
+    case Map.get(map, token) do
+      {job, _} -> {:noreply, {Map.put(map, token, {job, :error}), queue }}
+      _ -> {:noreply, state}
+    end
   end
 
   def handle_cast({:put, job}, {map, queue}) do
@@ -293,8 +293,11 @@ defmodule GnExec.Registry do
     {:noreply, state}
   end
 
+  def handle_cast(:wipeout, _state) do
+    {:noreply, {Map.new, :queue.new}}
+  end
 
-  # def handle_cast(request, state) do
-  #   super(request, state)
-  # end
+  def handle_cast(request, state) do
+    super(request, state)
+  end
 end
