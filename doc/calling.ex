@@ -55,5 +55,5 @@ defmodule GnExec.Node do
 
     run
   end
-
 end
+GnExec.Node.run 
