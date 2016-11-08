@@ -56,32 +56,6 @@ defmodule GnExec.Rest.Job do
           |> Poison.decode!
   end
 
-  #@spec run(job :: GnExec.Rest.Job) :: any
-  def run(job) do
-    set_status(job, 0)
-# you can define any function/callback that will be called every time a new data will be produced
-    output_callback = fn(data) ->
-      # TODO: Here user can also update the state of the jobs increasing and/or modifying it
-      status = status(job)
-      update_stdout(job, data)
-      set_status(job, status.progress + 1)
-    end
-
-    retval_callback = fn(job, retval) ->
-      set_retval(job, retval)
-    end
-
-
-    case GnExec.Job.validate(job.command) do
-      {:ok, _module } ->
-        task = GnExec.Executor.exec_async job,
-                                          output_callback,
-                                          &transfer_file/2,
-                                          retval_callback
-      {:error, :noprogram} -> {:error, :noprogram}
-    end
-  end
-
   def status(job) do
     # GnExec.Rest.Client.get_status(job.token)
     get!("program/" <> job.token <> "/progress.json").body
