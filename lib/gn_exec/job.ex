@@ -179,7 +179,10 @@ defmodule GnExec.Job do
     response
   end
 
-  def run(job, output_callback, transfer_callback, retval_callback) do
+  def run(job,
+          output_callback \\ fn(_x)-> nil end,
+          transfer_callback \\ fn(_job, _packfile)-> :ok end ,
+          retval_callback \\ fn(retval)-> retval  end) do
     GnExec.Executor.exec_async job,
                                output_callback,
                                transfer_callback,
