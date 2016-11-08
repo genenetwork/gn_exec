@@ -58,6 +58,7 @@ defmodule GnExec.Cmd do
       :ok ->
         Registry.transferred job.token
         retval_callback.(retval) # this close all transimissions with outside
+        # TODO: Do I need to keep track of what happened remotely ?
         File.rm_rf!(token_path)
         File.rm!(pack_file)
         case retval do
