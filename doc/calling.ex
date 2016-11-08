@@ -1,26 +1,21 @@
-# Create a job locally
-#{:ok, job} = GnExec.Job.new("Ls", ["."])
-#{:ok, job} = GnExec.Job.new "Lmmpy", ["/Users/bonnalraoul/Documents/Projects/gn/pylmm_gn2/data/test8000.geno", "/Users/bonnalraoul/Documents/Projects/gn/pylmm_gn2/data/test8000.pheno"]
-# Post the job on the gn_server ready to be deployed somewhere
-#  GnExec.Rest.Job.submit(job)
 
+requile Logger
 # Place jobs in the server queue.
 home_path =System.user_home()<>"/"
 File.ls!(home_path)|> Enum.filter(&File.dir?(home_path<>&1)) |> Enum.each(fn(dir)->
   absdir=home_path<>dir
-  IO.puts "Creating job for #{absdir}"
+  Logger.info "Creating job for #{absdir}"
   {:ok, job} = GnExec.Job.new("Ls", [absdir])
-  IO.puts "Submitting job for #{dir} with token #{job.token}"
+  Logger.info "Submitting job for #{dir} with token #{job.token}"
   GnExec.Rest.Job.submit(job)
 end)
-
 
 # This should be a kind of giant loop running on the cluster node.
 
 defmodule GnExec.Node do
 
   def run do
-    :timer.sleep(:timer.seconds(5))
+    :timer.sleep(:timer.seconds(1))
     #Get the job from the remote gn_server
     case GnExec.Rest.Job.get do
       :empty -> :empty
@@ -35,16 +30,17 @@ defmodule GnExec.Node do
           progress = GnExec.Job.progress(:read, j).progress + 1
           GnExec.Job.progress(:write, j, progress)
           # Place the STDOUT and progress remotely
-          GnExec.Rest.Job.set_status(j, progress)
-          GnExec.Rest.Job.update_stdout(j,data)
+         GnExec.Rest.Job.set_status(j, progress)
+         GnExec.Rest.Job.update_stdout(j,data)
         end
 
         transfer_callback = fn(job, file)->
-          GnExec.Rest.Job.transfer_file(j, file)
-          GnExec.Registry.transferred j.token
+         GnExec.Rest.Job.transfer_file(j, file)
+          :ok # returning :ok means that locally everything is fine and the job can change state from running to transferred
         end
 
         # Dump locally the returning value and in case place it remotely
+        # Currently the remote result is not kept
         retval_callback = fn(retval) ->
           GnExec.Job.retval(:write, j, retval)
           GnExec.Rest.Job.set_retval(j, retval)
