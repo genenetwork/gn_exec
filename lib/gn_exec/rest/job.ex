@@ -32,7 +32,10 @@ defmodule GnExec.Rest.Job do
     case response do
       "empty" -> :empty
       # passing back and forth the data are converted into strings by json
-      job -> %{%{job | module: String.to_atom(job.module)} | args: String.split(job.args)}
+      job -> %{%{job | module: String.to_atom(job.module)} | args: case is_list(job.args) do
+        true -> job.args
+        false -> String.split(job.args)
+      end}
 # TODO validate the incoming command
       #   case validate(job.command) do
       #   {:ok, module} ->
