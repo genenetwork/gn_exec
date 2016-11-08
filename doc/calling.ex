@@ -30,18 +30,17 @@ defmodule GnExec.Node do
         {j, status} = GnExec.Registry.next
 
         output_callback = fn(data) ->
-        # Dump data locally STDOUT and progress
-        # Place the STDOUT and progress remotely
+          # Dump data locally STDOUT and progress
           GnExec.Job.stdout(:write, j, data)
           progress = GnExec.Job.progress(:read, j).progress + 1
           GnExec.Job.progress(:write, j, progress)
+          # Place the STDOUT and progress remotely
           GnExec.Rest.Job.set_status(j, progress)
           GnExec.Rest.Job.update_stdout(j,data)
         end
 
         transfer_callback = fn(job, file)->
           GnExec.Rest.Job.transfer_file(j, file)
-          # check is everything is ok.
           GnExec.Registry.transferred j.token
         end
 
@@ -49,7 +48,6 @@ defmodule GnExec.Node do
         retval_callback = fn(retval) ->
           GnExec.Job.retval(:write, j, retval)
           GnExec.Rest.Job.set_retval(j, retval)
-          # TODO: mark the job complete
         end
 
         # Run the job with callbacks
