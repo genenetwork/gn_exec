@@ -18,6 +18,7 @@
 #
 
 defmodule GnExec.Registry do
+  require Logger
   use GenServer
   alias GnExec.Job
 
@@ -221,8 +222,10 @@ defmodule GnExec.Registry do
   def handle_cast({:run, token, output_callback, transfer_callback, retval_callback}, {map, queue} = state) do
     case Map.get(map, token) do
       { job, :requested} ->
-        Job.setupdir(job) # Create the directories before setting the stare to running
+        Logger.debug "Registry.run:start #{token}"
+        # Job.setupdir(job) # Create the directories before setting the stare to running
         Job.run(job, output_callback, transfer_callback, retval_callback)
+        Logger.debug "Registry.run:end #{token}"
         {:noreply, {Map.put(map, token, {job, :running}), queue}}
       _ -> {:noreply, state }
     end

@@ -1,5 +1,5 @@
 defmodule GnExec.Executor do
-
+  require Logger
   @doc ~S"""
 
   Execute the given command ( module name ) on the remote node with the specified args
@@ -13,6 +13,7 @@ defmodule GnExec.Executor do
   """
   def exec_async(job, output_callback, transfer_callback, retval_callback ) do
     # {__MODULE__, String.to_atom(Application.fetch_env!(:gn_exec, :node))}
+    Logger.debug "Executor.exec_async:start, #{job.token}"
     task = Task.Supervisor.async __MODULE__,
                           GnExec.Cmd,
                           :exec,
@@ -22,8 +23,9 @@ defmodule GnExec.Executor do
                             transfer_callback,
                             retval_callback
                           ]
+    Logger.debug "Executor.exec_async:end, token #{job.token}"
     # Set retval on remote server.
-    monitor_task(task)
+    # monitor_task(task)
   end
 
   def monitor_task(task) do

@@ -1,4 +1,5 @@
 defmodule GnExec.Job do
+  require Logger
   # use GenServer
   defstruct [:token, :command, :args, :path, :module]
 
@@ -183,10 +184,12 @@ defmodule GnExec.Job do
           output_callback \\ fn(_x)-> nil end,
           transfer_callback \\ fn(_job, _packfile)-> :ok end ,
           retval_callback \\ fn(retval)-> retval  end) do
+    Logger.debug "Job.run:start #{job.token}"
     GnExec.Executor.exec_async job,
                                output_callback,
                                transfer_callback,
                                retval_callback
+    Logger.debug "Job.run:end #{job.token}"
   end
 
 
