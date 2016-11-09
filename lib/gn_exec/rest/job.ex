@@ -62,17 +62,17 @@ defmodule GnExec.Rest.Job do
     |> Poison.decode!(as: %GnExec.Rest.JobStatus{} )
   end
 
-  def set_status(job, progress) do
+  def status(job, progress) do
     # GnExec.Rest.Client.set_status(job.token, progress)
     put!("program/" <> job.token <> "/progress.json",{:form, [{:progress, progress}]})
   end
 
-  def update_stdout(job, stdout) do
+  def stdout(job, stdout) do
     # GnExec.Rest.Client.update_stdout(job.token, stdout)
     put!("program/" <> job.token <> "/STDOUT",{:form, [{:stdout, stdout}]})
   end
 
-  def set_retval(job, retval) do
+  def retval(job, retval) do
     # GnExec.Rest.Client.set_retval(job.token, retval)
     put!("program/" <> job.token <> "/retval.json",{:form, [{:retval, retval}]})
   end
