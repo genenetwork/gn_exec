@@ -3,6 +3,7 @@ defmodule GnExec.Rest.JobStatus do
 end
 
 defmodule GnExec.Rest.Job do
+  require Logger
   use HTTPoison.Base
   # @derive [Poison.Encoder]
 
@@ -17,6 +18,7 @@ defmodule GnExec.Rest.Job do
 
   def process_url(url) do
     server_url = Application.get_env(:gn_exec, :gn_server_url)
+    Logger.info server_url <> url
     server_url <> url
   end
 
@@ -48,11 +50,14 @@ defmodule GnExec.Rest.Job do
 
   ### TODO: submit a new job to the queue.
   def submit(job) do
+    Logger.debug "Rest.Job.submit #{job.token}"
+    Logger.debug "Rest.Job.submit #{job.command}"
+    # body =
+    # IO.inspect body
     post!(job.command, {:form, [
-                                 {:arguments, job.args},
+                                 {:arguments, Base.encode64(Poison.encode!(job.args))},
                                  {:token, job.token}
-                               ]}
-          ).body
+                               ]}).body
           |> Poison.decode!
   end
 
