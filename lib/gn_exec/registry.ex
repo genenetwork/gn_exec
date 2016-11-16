@@ -123,6 +123,10 @@ defmodule GnExec.Registry do
     GenServer.cast(__MODULE__, :wipeout)
   end
 
+  def list do
+    GenServer.call(__MODULE__, :list)
+  end
+
 
   # Server (callbacks)
 
@@ -136,6 +140,8 @@ defmodule GnExec.Registry do
     # {:ok, {supervisor, Map.new }}
     {:ok, {Map.new, :queue.new}}
   end
+
+# CALL
 
   def handle_call({:has_job?, token}, _from, {map, _queue } = state) do
     {:reply, Map.has_key?(map, token), state}
@@ -210,6 +216,10 @@ defmodule GnExec.Registry do
       :error ->
         {:reply, :enote, state}
     end
+  end
+
+  def handle_call(:list, _from, {map, _queue} = state ) do
+    {:reply, Map.to_list(map), state }
   end
 
   def handle_call(request, from, state) do

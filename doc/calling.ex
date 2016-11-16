@@ -1,5 +1,7 @@
+{:ok, job} = GnExec.Job.new "Lmmpy", ["/Users/bonnalraoul/Documents/Projects/gn/pylmm_gn2/data/test8000.geno", "/Users/bonnalraoul/Documents/Projects/gn/pylmm_gn2/data/test8000.pheno"]
+GnExec.Rest.Job.submit(job)
 
-requile Logger
+require Logger
 # Place jobs in the server queue.
 home_path =System.user_home()<>"/"
 File.ls!(home_path)|> Enum.filter(&File.dir?(home_path<>&1)) |> Enum.each(fn(dir)->
@@ -15,7 +17,6 @@ end)
 defmodule GnExec.Node do
 
   def run do
-    :timer.sleep(:timer.seconds(1))
     #Get the job from the remote gn_server
     case GnExec.Rest.Job.get do
       :empty -> :empty
@@ -30,8 +31,8 @@ defmodule GnExec.Node do
           progress = GnExec.Job.progress(:read, j).progress + 1
           GnExec.Job.progress(:write, j, progress)
           # Place the STDOUT and progress remotely
-         GnExec.Rest.Job.set_status(j, progress)
-         GnExec.Rest.Job.update_stdout(j,data)
+         GnExec.Rest.Job.status(j, progress)
+         GnExec.Rest.Job.stdout(j,data)
         end
 
         transfer_callback = fn(job, file)->
@@ -43,7 +44,7 @@ defmodule GnExec.Node do
         # Currently the remote result is not kept
         retval_callback = fn(retval) ->
           GnExec.Job.retval(:write, j, retval)
-          GnExec.Rest.Job.set_retval(j, retval)
+          GnExec.Rest.Job.retval(j, retval)
         end
 
         # Run the job with callbacks
