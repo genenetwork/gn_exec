@@ -185,6 +185,7 @@ defmodule GnExec.Job do
           transfer_callback \\ fn(_job, _packfile)-> :ok end ,
           retval_callback \\ fn(retval)-> retval  end) do
     Logger.debug "Job.run:start #{job.token}"
+    setupdir job
     GnExec.Executor.exec_async job,
                                output_callback,
                                transfer_callback,
