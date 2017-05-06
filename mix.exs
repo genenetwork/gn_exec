@@ -14,7 +14,7 @@ defmodule GnExec.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger,:httpoison],
+    [applications: [:logger, :httpoison, :maru],
      mod: {GnExec, []}]
   end
 
@@ -30,7 +30,8 @@ defmodule GnExec.Mixfile do
   defp deps do
     [
       {:httpoison, "~> 0.9.0"},
-      {:poison, "~> 2.0"}
+      {:poison, "~> 2.0"},
+      {:maru, "~> 0.9.5"}
     ]
   end
 end
